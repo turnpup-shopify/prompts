@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Selector</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .tag-pill {
+      display: inline-block;
+      background: rgba(102, 126, 234, 0.12);
+      color: #667eea;
+      border: 1px solid rgba(102, 126, 234, 0.25);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      margin: 2px 2px 2px 0;
+      white-space: nowrap;
+    }
+
+    .prompt-name {
+      font-weight: 600;
+      color: #1d1d1f;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 40px 20px;
+      color: #1d1d1f;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: 48px;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    .header p {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 18px;
+      font-weight: 400;
+    }
+
+    /* Hashtag Link */
+    .hashtag-link {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 10px 20px;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hashtag-link:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Glass Card */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+
+    /* Tab Pills Container */
+    .tabs-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    /* Pill Buttons */
+    .pill-button {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 24px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 500;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+      white-space: nowrap;
+      text-transform: capitalize;
+    }
+
+    .pill-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .pill-button.active {
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Random Button */
+    .random-button {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border: none;
+      border-radius: 16px;
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+      display: block;
+      margin: 0 auto 32px;
+      box-shadow: 0 4px 16px rgba(245, 87, 108, 0.3);
+    }
+
+    .random-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+    }
+
+    .random-button:active {
+      transform: translateY(-1px);
+    }
+
+    /* Table Container */
+    .table-container {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    .prompts-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .prompts-table thead {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .prompts-table th {
+      padding: 16px 20px;
+      text-align: left;
+      font-size: 14px;
+      font-weight: 600;
+      color: #667eea;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .prompts-table td {
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      font-size: 15px;
+      color: #1d1d1f;
+      line-height: 1.6;
+    }
+
+    .prompts-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .prompts-table tbody tr {
+      transition: background-color 0.2s;
+      cursor: pointer;
+    }
+
+    .prompts-table tbody tr:hover {
+      background-color: rgba(102, 126, 234, 0.05);
+    }
+
+    .prompts-table tbody tr.highlight {
+      background-color: rgba(245, 87, 108, 0.15);
+      animation: highlight-fade 2s ease-out;
+    }
+
+    @keyframes highlight-fade {
+      0%   { background-color: rgba(245, 87, 108, 0.3); }
+      100% { background-color: rgba(245, 87, 108, 0.15); }
+    }
+
+    .row-number {
+      font-weight: 600;
+      color: #667eea;
+      min-width: 40px;
+    }
+
+    /* Copy hint on row */
+    .copy-hint {
+      display: none;
+      font-size: 11px;
+      color: #667eea;
+      opacity: 0.6;
+      margin-top: 4px;
+    }
+
+    .prompts-table tbody tr:hover .copy-hint {
+      display: block;
+    }
+
+    /* Loading State */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: white;
+      font-size: 18px;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top: 3px solid white;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: white;
+    }
+
+    .empty-state p {
+      font-size: 16px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(52, 199, 89, 0.95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: white;
+      padding: 16px 24px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      font-weight: 500;
+      font-size: 15px;
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Tag Filters */
+    .tag-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .tag-filters-label {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      font-weight: 500;
+      width: 100%;
+      margin-bottom: 4px;
+    }
+
+    .tag-filter-pill {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      outline: none;
+    }
+
+    .tag-filter-pill:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .tag-filter-pill.active {
+      background: rgba(255, 255, 255, 0.9);
+      color: #667eea;
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+
+    /* Refresh button */
+    .refresh-button {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      outline: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .refresh-button:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .refresh-button.spinning svg {
+      animation: spin 1s linear infinite;
+    }
+
+    .tabs-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 36px;
+      }
+
+      .header {
+        padding-top: 50px;
+      }
+
+      .hashtag-link {
+        top: -10px;
+        right: 0;
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+
+      .glass-card {
+        padding: 20px;
+      }
+
+      .tabs-row {
+        gap: 8px;
+      }
+
+      .pill-button {
+        padding: 10px 20px;
+        font-size: 14px;
+      }
+
+      .prompts-table th,
+      .prompts-table td {
+        padding: 12px 16px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <a href="https://alexturney.com/creativity" target="_blank" class="hashtag-link">
+        <span>#</span>
+        <span>Hashtags</span>
+      </a>
+      <h1>Prompt Selector</h1>
+      <p>Choose a category and explore prompts</p>
+    </div>
+
+    <div class="glass-card">
+      <!-- Tabs row -->
+      <div id="tabs-container" class="tabs-row">
+        <div class="loading">
+          <div class="spinner"></div>
+          Loading tabs…
+        </div>
+      </div>
+
+      <!-- Tag filters -->
+      <div id="tag-filters-container" class="tag-filters" style="display:none;">
+        <div class="tag-filters-label">Filter by tag</div>
+      </div>
+
+      <!-- Random button -->
+      <button id="random-button" class="random-button" style="display:none;">
+        🎲 Random Prompt
+      </button>
+
+      <!-- Table -->
+      <div id="content-container" class="table-container" style="display:none;">
+        <table class="prompts-table">
+          <thead>
+            <tr>
+              <th style="width:48px;">#</th>
+              <th style="width:200px;">Name</th>
+              <th>Prompt</th>
+              <th style="width:180px;">Tags</th>
+            </tr>
+          </thead>
+          <tbody id="prompts-body"></tbody>
+        </table>
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="empty-state" style="display:none;">
+        <div class="empty-state-icon">📝</div>
+        <h3>No Prompts Found</h3>
+        <p>This tab doesn't contain any prompts yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast">
+    <span>✓</span>
+    <span id="toast-message">Copied to clipboard!</span>
+  </div>
+
+  <script>
+    // ─── CONFIG ──────────────────────────────────────────────────────────────
+    const SPREADSHEET_BASE =
+      'https://docs.google.com/spreadsheets/d/e/' +
+      '2PACX-1vR7KzMy8dzQwoldtFDsN2j8LDxh02QOoaNRgj8IaOYiFxHBdZs9YIWOHaHih5Znt-ordjc1G3yathyQ' +
+      '/pub?single=true&output=csv';
+
+    // Sheet tabs: name → gid
+    const SHEETS = [
+      { name: 'decor',     gid: '0' },
+      { name: 'furniture', gid: '2131237976' },
+      { name: 'rooms',     gid: '1158051146' },
+    ];
+
+    // ─── STATE ───────────────────────────────────────────────────────────────
+    let allData    = {};   // { sheetName: [ {name, prompt, tags}, … ] }
+    let currentTab = null;
+    let activeTag  = 'all';
+
+    // ─── INIT ────────────────────────────────────────────────────────────────
+    window.addEventListener('load', loadAllSheets);
+
+    async function loadAllSheets() {
+      try {
+        const results = await Promise.all(
+          SHEETS.map(s => fetchSheet(s.name, s.gid))
+        );
+
+        results.forEach(({ name, data }) => {
+          allData[name] = data;
+        });
+
+        renderTabs();
+        selectTab(SHEETS[0].name);
+      } catch (err) {
+        showError('Failed to load data. ' + err.message);
+      }
+    }
+
+    // ─── FETCH + PARSE CSV ───────────────────────────────────────────────────
+    async function fetchSheet(name, gid) {
+      const url = `${SPREADSHEET_BASE}&gid=${gid}`;
+      // Use a CORS proxy only if needed; Google's published CSVs support direct fetch
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status} fetching sheet "${name}"`);
+      const text = await res.text();
+      const rows = parseCSV(text);
+
+      if (rows.length < 2) return { name, data: [] };
+
+      // Row 0 is the header — skip it
+      const data = rows.slice(1)
+        .filter(r => (r[0] || '').trim() !== '' || (r[1] || '').trim() !== '')
+        .map(r => ({
+          name:   (r[0] || '').trim(),
+          prompt: (r[1] || '').trim(),
+          tags:   (r[2] || '').trim(),
+        }));
+
+      return { name, data };
+    }
+
+    /**
+     * Minimal RFC-4180 CSV parser that correctly handles:
+     *  - quoted fields with embedded commas / newlines / double-quotes
+     *  - un-quoted fields
+     */
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let i = 0;
+      const n = text.length;
+
+      while (i < n) {
+        if (text[i] === '"') {
+          // Quoted field
+          let field = '';
+          i++; // skip opening quote
+          while (i < n) {
+            if (text[i] === '"') {
+              if (i + 1 < n && text[i + 1] === '"') {
+                field += '"';
+                i += 2;
+              } else {
+                i++; // skip closing quote
+                break;
+              }
+            } else {
+              field += text[i++];
+            }
+          }
+          row.push(field);
+          // skip comma or newline after closing quote
+          if (i < n && text[i] === ',') i++;
+          else if (i < n && text[i] === '\r') {
+            i++;
+            if (i < n && text[i] === '\n') i++;
+            rows.push(row);
+            row = [];
+          } else if (i < n && text[i] === '\n') {
+            i++;
+            rows.push(row);
+            row = [];
+          }
+        } else {
+          // Unquoted field
+          let field = '';
+          while (i < n && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') {
+            field += text[i++];
+          }
+          row.push(field);
+          if (i < n && text[i] === ',') {
+            i++;
+          } else if (i < n && text[i] === '\r') {
+            i++;
+            if (i < n && text[i] === '\n') i++;
+            rows.push(row);
+            row = [];
+          } else if (i < n && text[i] === '\n') {
+            i++;
+            rows.push(row);
+            row = [];
+          }
+        }
+      }
+      if (row.length > 0) rows.push(row);
+      return rows;
+    }
+
+    // ─── RENDER TABS ─────────────────────────────────────────────────────────
+    function renderTabs() {
+      const container = document.getElementById('tabs-container');
+      container.innerHTML = '';
+
+      SHEETS.forEach(sheet => {
+        const btn = document.createElement('button');
+        btn.className = 'pill-button';
+        btn.textContent = sheet.name;
+        btn.onclick = () => selectTab(sheet.name);
+        container.appendChild(btn);
+      });
+
+      // Refresh button
+      const refreshBtn = document.createElement('button');
+      refreshBtn.className = 'refresh-button';
+      refreshBtn.id = 'refresh-button';
+      refreshBtn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"></polyline>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+        </svg>
+        Refresh
+      `;
+      refreshBtn.onclick = async () => {
+        refreshBtn.classList.add('spinning');
+        allData = {};
+        await loadAllSheets();
+        refreshBtn.classList.remove('spinning');
+      };
+      container.appendChild(refreshBtn);
+
+      document.getElementById('random-button').style.display = 'block';
+    }
+
+    // ─── SELECT TAB ──────────────────────────────────────────────────────────
+    function selectTab(tabName) {
+      currentTab = tabName;
+      activeTag  = 'all';
+
+      document.querySelectorAll('.pill-button').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent === tabName);
+      });
+
+      const data = allData[tabName] || [];
+
+      if (!data.length) {
+        document.getElementById('tag-filters-container').style.display = 'none';
+        showEmptyState();
+        return;
+      }
+
+      renderTagFilters(data);
+      renderPrompts(data);
+    }
+
+    // ─── TAG FILTERS ─────────────────────────────────────────────────────────
+    function renderTagFilters(prompts) {
+      const container = document.getElementById('tag-filters-container');
+      const tagSet = new Set();
+
+      prompts.forEach(p => {
+        if (p.tags) {
+          p.tags.split(',').map(t => t.trim()).filter(Boolean).forEach(t => tagSet.add(t));
+        }
+      });
+
+      if (tagSet.size === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = '<div class="tag-filters-label">Filter by tag</div>';
+
+      const allPill = document.createElement('button');
+      allPill.className = 'tag-filter-pill all-pill active';
+      allPill.textContent = 'All';
+      allPill.onclick = () => setTagFilter('all', prompts);
+      container.appendChild(allPill);
+
+      [...tagSet].sort().forEach(tag => {
+        const pill = document.createElement('button');
+        pill.className = 'tag-filter-pill';
+        pill.textContent = tag;
+        pill.onclick = () => setTagFilter(tag, prompts);
+        container.appendChild(pill);
+      });
+
+      container.style.display = 'flex';
+    }
+
+    function setTagFilter(tag, prompts) {
+      activeTag = tag;
+
+      document.querySelectorAll('.tag-filter-pill').forEach(pill => {
+        const isAll = pill.classList.contains('all-pill');
+        pill.classList.toggle('active',
+          (tag === 'all' && isAll) || pill.textContent === tag
+        );
+      });
+
+      const filtered = tag === 'all'
+        ? prompts
+        : prompts.filter(p =>
+            p.tags && p.tags.split(',').map(t => t.trim()).includes(tag)
+          );
+
+      renderPrompts(filtered);
+    }
+
+    // ─── RENDER PROMPTS ───────────────────────────────────────────────────────
+    function renderPrompts(prompts) {
+      const contentContainer = document.getElementById('content-container');
+      const emptyState       = document.getElementById('empty-state');
+      const promptsBody      = document.getElementById('prompts-body');
+
+      if (!prompts || prompts.length === 0) {
+        showEmptyState();
+        return;
+      }
+
+      promptsBody.innerHTML = '';
+
+      prompts.forEach((prompt, index) => {
+        const tagHtml = prompt.tags
+          ? prompt.tags.split(',').map(t => t.trim()).filter(Boolean)
+              .map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('')
+          : '';
+
+        const row = document.createElement('tr');
+        row.title = 'Click to copy prompt';
+        row.innerHTML = `
+          <td class="row-number">${index + 1}</td>
+          <td>
+            <span class="prompt-name">${escapeHtml(prompt.name)}</span>
+            <div class="copy-hint">Click row to copy</div>
+          </td>
+          <td>${escapeHtml(prompt.prompt)}</td>
+          <td>${tagHtml}</td>
+        `;
+        row.addEventListener('click', () => {
+          copyToClipboard(prompt.prompt);
+          // Brief highlight
+          document.querySelectorAll('#prompts-body tr').forEach(r => r.classList.remove('highlight'));
+          row.classList.add('highlight');
+        });
+
+        promptsBody.appendChild(row);
+      });
+
+      contentContainer.style.display = 'block';
+      emptyState.style.display = 'none';
+    }
+
+    function showEmptyState() {
+      document.getElementById('content-container').style.display = 'none';
+      document.getElementById('empty-state').style.display = 'block';
+    }
+
+    function showError(message) {
+      document.getElementById('tabs-container').innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">⚠️</div>
+          <h3>Error</h3>
+          <p>${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    // ─── RANDOM BUTTON ────────────────────────────────────────────────────────
+    document.getElementById('random-button').addEventListener('click', function () {
+      if (!currentTab) return;
+
+      const data = allData[currentTab] || [];
+      if (!data.length) return;
+
+      const pool = activeTag === 'all'
+        ? data
+        : data.filter(p =>
+            p.tags && p.tags.split(',').map(t => t.trim()).includes(activeTag)
+          );
+
+      if (!pool.length) return;
+
+      const randomIndex  = Math.floor(Math.random() * pool.length);
+      const randomPrompt = pool[randomIndex];
+
+      // Highlight the matching rendered row
+      const rows = document.querySelectorAll('#prompts-body tr');
+      rows.forEach((row, i) => {
+        row.classList.remove('highlight');
+        if (i === randomIndex) {
+          row.classList.add('highlight');
+          row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+
+      copyToClipboard(randomPrompt.prompt);
+    });
+
+    // ─── CLIPBOARD ───────────────────────────────────────────────────────────
+    function copyToClipboard(text) {
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('Copied to clipboard!'))
+          .catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;left:-999999px;top:-999999px;';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      try {
+        document.execCommand('copy');
+        showToast('Copied to clipboard!');
+      } catch {
+        showToast('Failed to copy', 'error');
+      }
+      document.body.removeChild(ta);
+    }
+
+    // ─── TOAST ───────────────────────────────────────────────────────────────
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-message').textContent = message;
+      toast.style.background = type === 'error'
+        ? 'rgba(255, 59, 48, 0.95)'
+        : 'rgba(52, 199, 89, 0.95)';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // ─── UTILS ───────────────────────────────────────────────────────────────
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+  </script>
+</body>
+</html>
