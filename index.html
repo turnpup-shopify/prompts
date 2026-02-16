@@ -396,40 +396,193 @@
       margin-bottom: 24px;
     }
 
+    /* ── Mobile card layout ───────────────────────────────────────────────── */
+    .prompt-card {
+      display: none; /* shown only on mobile */
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
+      body {
+        padding: 20px 12px;
+      }
+
       .header h1 {
-        font-size: 36px;
+        font-size: 28px;
+        margin-bottom: 6px;
+      }
+
+      .header p {
+        font-size: 14px;
       }
 
       .header {
-        padding-top: 50px;
+        padding-top: 44px;
+        margin-bottom: 20px;
       }
 
       .hashtag-link {
-        top: -10px;
+        top: -6px;
         right: 0;
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 7px 12px;
+        font-size: 12px;
+        border-radius: 10px;
       }
 
       .glass-card {
-        padding: 20px;
+        padding: 16px;
+        border-radius: 18px;
       }
 
       .tabs-row {
         gap: 8px;
+        margin-bottom: 16px;
       }
 
       .pill-button {
-        padding: 10px 20px;
+        padding: 10px 18px;
         font-size: 14px;
+        flex: 1 1 auto;
+        text-align: center;
       }
 
-      .prompts-table th,
-      .prompts-table td {
-        padding: 12px 16px;
-        font-size: 14px;
+      .refresh-button {
+        flex: 0 0 auto;
+        margin-left: 0;
+      }
+
+      .tag-filters {
+        gap: 6px;
+        margin-bottom: 14px;
+      }
+
+      .tag-filter-pill {
+        padding: 5px 12px;
+        font-size: 12px;
+      }
+
+      .random-button {
+        width: 100%;
+        padding: 14px 20px;
+        font-size: 15px;
+        margin-bottom: 20px;
+        border-radius: 14px;
+      }
+
+      /* Hide the table on mobile, show cards instead */
+      .table-container {
+        background: transparent;
+        box-shadow: none;
+        border-radius: 0;
+        overflow: visible;
+      }
+
+      .prompts-table {
+        display: none;
+      }
+
+      .prompt-card {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .prompt-card:active {
+        transform: scale(0.98);
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .prompt-card.highlight {
+        background: rgba(245, 87, 108, 0.12);
+        animation: highlight-fade 2s ease-out;
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .card-number {
+        background: rgba(102, 126, 234, 0.12);
+        color: #667eea;
+        border-radius: 8px;
+        padding: 3px 8px;
+        font-size: 12px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .card-name {
+        font-weight: 600;
+        color: #1d1d1f;
+        font-size: 15px;
+        line-height: 1.3;
+      }
+
+      .card-prompt {
+        font-size: 13px;
+        color: #3a3a3c;
+        line-height: 1.55;
+        /* Show first ~3 lines, expandable */
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .card-prompt.expanded {
+        display: block;
+        -webkit-line-clamp: unset;
+      }
+
+      .card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .card-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .card-copy-btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 7px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: opacity 0.15s;
+      }
+
+      .card-copy-btn:active {
+        opacity: 0.8;
+      }
+
+      .card-expand-btn {
+        background: none;
+        border: none;
+        color: #667eea;
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0;
       }
     }
   </style>
@@ -745,7 +898,9 @@
         return;
       }
 
+      // Clear table rows + any existing cards
       promptsBody.innerHTML = '';
+      contentContainer.querySelectorAll('.prompt-card').forEach(c => c.remove());
 
       prompts.forEach((prompt, index) => {
         const tagHtml = prompt.tags
@@ -753,6 +908,7 @@
               .map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('')
           : '';
 
+        // ── Desktop table row ──────────────────────────────────────────────
         const row = document.createElement('tr');
         row.title = 'Click to copy prompt';
         row.innerHTML = `
@@ -766,12 +922,56 @@
         `;
         row.addEventListener('click', () => {
           copyToClipboard(prompt.prompt);
-          // Brief highlight
           document.querySelectorAll('#prompts-body tr').forEach(r => r.classList.remove('highlight'));
           row.classList.add('highlight');
         });
-
         promptsBody.appendChild(row);
+
+        // ── Mobile card ────────────────────────────────────────────────────
+        const card = document.createElement('div');
+        card.className = 'prompt-card';
+        card.dataset.index = index;
+
+        const cardTagHtml = prompt.tags
+          ? prompt.tags.split(',').map(t => t.trim()).filter(Boolean)
+              .map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`).join('')
+          : '';
+
+        card.innerHTML = `
+          <div class="card-header">
+            <span class="card-number">${index + 1}</span>
+            <span class="card-name">${escapeHtml(prompt.name)}</span>
+          </div>
+          <div class="card-prompt">${escapeHtml(prompt.prompt)}</div>
+          <div class="card-footer">
+            <div class="card-tags">${cardTagHtml}</div>
+            <button class="card-copy-btn">⎘ Copy</button>
+          </div>
+        `;
+
+        // Expand / collapse on prompt text tap
+        const promptText = card.querySelector('.card-prompt');
+        promptText.addEventListener('click', (e) => {
+          e.stopPropagation();
+          promptText.classList.toggle('expanded');
+        });
+
+        // Copy button
+        card.querySelector('.card-copy-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          copyToClipboard(prompt.prompt);
+          document.querySelectorAll('.prompt-card').forEach(c => c.classList.remove('highlight'));
+          card.classList.add('highlight');
+        });
+
+        // Tap anywhere on card also copies
+        card.addEventListener('click', () => {
+          copyToClipboard(prompt.prompt);
+          document.querySelectorAll('.prompt-card').forEach(c => c.classList.remove('highlight'));
+          card.classList.add('highlight');
+        });
+
+        contentContainer.appendChild(card);
       });
 
       contentContainer.style.display = 'block';
@@ -811,13 +1011,19 @@
       const randomIndex  = Math.floor(Math.random() * pool.length);
       const randomPrompt = pool[randomIndex];
 
-      // Highlight the matching rendered row
-      const rows = document.querySelectorAll('#prompts-body tr');
-      rows.forEach((row, i) => {
+      // Highlight the matching rendered row (desktop) and card (mobile)
+      document.querySelectorAll('#prompts-body tr').forEach((row, i) => {
         row.classList.remove('highlight');
         if (i === randomIndex) {
           row.classList.add('highlight');
           row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+      document.querySelectorAll('.prompt-card').forEach((card) => {
+        card.classList.remove('highlight');
+        if (parseInt(card.dataset.index) === randomIndex) {
+          card.classList.add('highlight');
+          card.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       });
 
